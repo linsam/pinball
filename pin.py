@@ -3,6 +3,8 @@
 
 import pygame
 import time
+import sys
+import select
 
 pygame.init()
 #pygame.display.init()
@@ -25,16 +27,46 @@ if 0:
 		pygame.draw.line(screen, (255,i%255,0), (0, i), (width, 0))
 		pygame.display.flip()
 def linebase(w):
-	for i in range(0,width, 1+(10*w)%23):
-		pygame.draw.line(screen, (255,i%255,0), (0, height), (i, 0))
-	for i in range(0,height, 1+(10*w)%23):
-		pygame.draw.line(screen, (255,i%255,0), (0, height), (width, i))
-for i in range(0,100):
-	screen.fill((0,0,i))
-	linebase(i)
-	screen.blit(t, t.get_rect())
+	color = 0
+	for i in range(0,width, 10+w):
+		pygame.draw.line(screen, (255,color%255,0), (0, height), (i, 0))
+		color += 10
+	for i in range(10 - (width - i),height, 10+w):
+		pygame.draw.line(screen, (255,color%255,0), (0, height), (width, i))
+		color += 10
+cnt = 0
+dir = 1
+w = 5
+wdir = 1
+r = t.get_rect()
+while True:
+	screen.fill((0,0,0))
+	linebase(w)
+	w += wdir
+	if w < 5:
+		wdir = 1
+	elif w > 23:
+		wdir = -1
+	r[0] = cnt * 5
+	cnt+=dir
+	if cnt < 0:
+		dir = 1
+	elif cnt > 100:
+		dir = -1
+	screen.blit(t, r)
+	t2 = myfont.render("Score: %i" % (w*100), True, (255,255,255))
+	r2 = t2.get_rect()
+	r2[0] = 100
+	r2[1] = 400
+	screen.blit(t2, r2)
 	pygame.display.flip()
-print "sleep time. Press ctrl+d to exit"
-import sys
-sys.stdin.read()
-pygame.mixer.music.fadeout(10000)
+	if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
+		line = sys.stdin.readline()
+		if "quit" in line:
+			sys.exit(0)
+		elif "silent" in line:
+			pygame.mixer.music.pause()
+		elif not line:
+			sys.exit(0)
+		else:
+			print "Unknown command",line
