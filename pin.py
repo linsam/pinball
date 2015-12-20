@@ -14,6 +14,8 @@ myfont = pygame.font.Font(pygame.font.match_font("default"), height/5)
 pygame.mouse.set_visible(False)
 print "start"
 t = myfont.render("Hello", True, (255,255,255))
+pygame.mixer.music.load("more.ogg")
+pygame.mixer.music.play(-1)
 screen.blit(t, t.get_rect())
 if 0:
 	for i in range(0,width, 10):
@@ -22,13 +24,17 @@ if 0:
 	for i in range(0,height, 10):
 		pygame.draw.line(screen, (255,i%255,0), (0, i), (width, 0))
 		pygame.display.flip()
-if 1:
-	for i in range(0,width, 10):
+def linebase(w):
+	for i in range(0,width, 1+(10*w)%23):
 		pygame.draw.line(screen, (255,i%255,0), (0, height), (i, 0))
-		pygame.display.flip()
-	for i in range(0,height, 10):
+	for i in range(0,height, 1+(10*w)%23):
 		pygame.draw.line(screen, (255,i%255,0), (0, height), (width, i))
-		pygame.display.flip()
+for i in range(0,100):
+	screen.fill((0,0,i))
+	linebase(i)
+	screen.blit(t, t.get_rect())
+	pygame.display.flip()
 print "sleep time. Press ctrl+d to exit"
 import sys
 sys.stdin.read()
+pygame.mixer.music.fadeout(10000)
