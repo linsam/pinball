@@ -6,6 +6,13 @@ import time
 import sys
 import select
 import serial
+import os
+
+# Disable screen blanking; our inputs aren't coming from X events, so X would otherwise powersave/blank the monitor.
+os.system("xset -dpms")
+os.system("xset s noblank")
+os.system("xset s noexpose")
+os.system("xset s reset")
 
 pygame.mixer.pre_init(44100,-16,2, 1024)
 pygame.init()
@@ -38,6 +45,7 @@ def linebase(w):
 	for i in range(10 - (width - i),height, 10+w):
 		pygame.draw.line(screen, (255,color%255,0), (0, height), (width, i))
 		color += 10
+s.write("r")
 cnt = 0
 dir = 1
 w = 5
@@ -72,7 +80,8 @@ while True:
 	r3[1] = 600
 	screen.blit(t3, r3)
 	pygame.display.flip()
-	if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
+	ready = select.select([sys.stdin, s], [], [], 0)[0]
+	if sys.stdin in ready:
 		line = sys.stdin.readline()
 		if "quit" in line:
 			sys.exit(0)
@@ -80,11 +89,13 @@ while True:
 			pygame.mixer.music.pause()
 		elif "reset" in line:
 			score = 0
+			s.write("r")
+			s.flushOutput()
 		elif not line:
 			sys.exit(0)
 		else:
 			print "Unknown command",line
-	if s in select.select([s], [], [], 0)[0]:
+	if s in ready:
 		line = s.readline().strip()
 		if line.startswith("U"):
 			val = int(line[2:])
