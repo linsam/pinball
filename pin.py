@@ -5,7 +5,9 @@ import pygame
 import time
 import sys
 import select
+import serial
 
+pygame.mixer.pre_init(44100,-16,2, 1024)
 pygame.init()
 #pygame.display.init()
 maxsize = pygame.display.list_modes()[0]
@@ -16,6 +18,8 @@ myfont = pygame.font.Font(pygame.font.match_font("default"), height/5)
 pygame.mouse.set_visible(False)
 print "start"
 t = myfont.render("Hello", True, (255,255,255))
+s = serial.Serial("/dev/ttyAMA0", 9600)
+print "got", s.name
 pygame.mixer.music.load("more.ogg")
 pygame.mixer.music.play(-1)
 screen.blit(t, t.get_rect())
@@ -39,6 +43,9 @@ dir = 1
 w = 5
 wdir = 1
 r = t.get_rect()
+val = 0
+score = 0
+snd = pygame.mixer.Sound("punch.wav")
 while True:
 	screen.fill((0,0,0))
 	linebase(w)
@@ -54,11 +61,16 @@ while True:
 	elif cnt > 100:
 		dir = -1
 	screen.blit(t, r)
-	t2 = myfont.render("Score: %i" % (w*100), True, (255,255,255))
+	t2 = myfont.render("Score: %i" % (score), True, (255,255,255))
 	r2 = t2.get_rect()
 	r2[0] = 100
 	r2[1] = 400
 	screen.blit(t2, r2)
+	t3 = myfont.render("Pos: %i" % val, True, (128,255,255))
+	r3 = t3.get_rect()
+	r3[0] = 100
+	r3[1] = 600
+	screen.blit(t3, r3)
 	pygame.display.flip()
 	if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
 		line = sys.stdin.readline()
@@ -66,7 +78,18 @@ while True:
 			sys.exit(0)
 		elif "silent" in line:
 			pygame.mixer.music.pause()
+		elif "reset" in line:
+			score = 0
 		elif not line:
 			sys.exit(0)
 		else:
 			print "Unknown command",line
+	if s in select.select([s], [], [], 0)[0]:
+		line = s.readline().strip()
+		if line.startswith("U"):
+			val = int(line[2:])
+			print line, val
+		elif line.startswith("P"):
+			score += int(line[2:])
+			print line, score
+			snd.play()
