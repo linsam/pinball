@@ -25,8 +25,11 @@ myfont = pygame.font.Font(pygame.font.match_font("default"), height/5)
 pygame.mouse.set_visible(False)
 print "start"
 t = myfont.render("Hello", True, (255,255,255))
-s = serial.Serial("/dev/ttyAMA0", 9600)
-print "got", s.name
+try:
+    s = serial.Serial("/dev/ttyAMA0", 9600)
+    print "got", s.name
+except serial.serialutil.SerialException:
+    s = None
 pygame.mixer.music.load("house_lo.ogg")
 pygame.mixer.music.play(-1)
 screen.blit(t, t.get_rect())
@@ -45,7 +48,9 @@ def linebase(w):
 	for i in range(10 - (width - i),height, 10+w):
 		pygame.draw.line(screen, (255,color%255,0), (0, height), (width, i))
 		color += 10
-s.write("r")
+if s:
+    # Send reset command
+    s.write("r")
 cnt = 0
 dir = 1
 w = 5
@@ -80,7 +85,10 @@ while True:
 	r3[1] = 600
 	screen.blit(t3, r3)
 	pygame.display.flip()
-	ready = select.select([sys.stdin, s], [], [], 0)[0]
+        if (s):
+            ready = select.select([sys.stdin, s], [], [], 0)[0]
+        else:
+            ready = select.select([sys.stdin], [], [], 0)[0]
 	if sys.stdin in ready:
 		line = sys.stdin.readline()
 		if "quit" in line:
