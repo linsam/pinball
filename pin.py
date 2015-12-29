@@ -27,7 +27,7 @@ print "start"
 t = myfont.render("Hello", True, (255,255,255))
 s = serial.Serial("/dev/ttyAMA0", 9600)
 print "got", s.name
-pygame.mixer.music.load("more.ogg")
+pygame.mixer.music.load("house_lo.ogg")
 pygame.mixer.music.play(-1)
 screen.blit(t, t.get_rect())
 if 0:
